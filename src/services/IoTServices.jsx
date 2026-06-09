@@ -24,7 +24,21 @@ import env from '../../env'
   }
 }
 
+ export const controllerIoT = async (id , data)=> {
+  try {
+    
+    const res = await axios.post(`http://localhost:5001/api/careplant/controllerIoT/${id}`, data);
+    
+    return res.data;
+  } catch (error) {
+    return error.response?.data;
+  }
+}
+
+
+
 export default {
     getMyIoT,
     careplantbyid,
+    controllerIoT,
 }

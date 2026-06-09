@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { Button, Card, Tag, Switch } from "antd";
+import { Button, Card, Tag, Switch, Slider } from "antd";
 
 import {
   PoweroffOutlined,
@@ -13,6 +13,8 @@ import {
   DownloadOutlined,
   CheckCircleOutlined,
   SettingOutlined,
+  FireOutlined
+  
 } from "@ant-design/icons";
 
 import { useParams } from "react-router-dom";
@@ -20,6 +22,8 @@ import IoTServices from "../../services/IoTServices";
 
 // ============ MAIN COMPONENT ============
 export default function DetailIoTdev() {
+
+  
   const { id } = useParams();
 
   const [iotData, setIotData] = useState(null);
@@ -83,18 +87,18 @@ useEffect(() => {
   // ================= SENSOR DATA =================
   const sensorData = [
     {
-      label: "Temperature",
+      label: "Nhiệt độ",
       value:
         iotData?.cambienNhietdo?.toFixed(1) ||
         0,
       unit: "°C",
-      icon: <ExperimentOutlined />,
+      icon: <FireOutlined />,
       borderColor: "#ff4d4f",
       color: "#ff4d4f",
     },
 
     {
-      label: "Soil Moisture",
+      label: "độ ẩm mặt đất",
       value:
         iotData?.cambienDoam_Mat_Dat?.toFixed(
           1
@@ -106,7 +110,7 @@ useEffect(() => {
     },
 
     {
-      label: "Light Intensity",
+      label: "Cường độ ánh sáng",
       value: iotData?.cambienAnhSang || 0,
       unit: "lux",
       icon: <SunOutlined />,
@@ -115,14 +119,58 @@ useEffect(() => {
     },
 
     {
-      label: "Pump Speed",
-      value: iotData?.tocdoMaybom || 0,
+      label: "độ ẩm không khí",
+      value: iotData?.cambienDoam_Khong_Khi || 0,
       unit: "%",
-      icon: <PoweroffOutlined />,
+      icon: <CloudOutlined />,
       borderColor: "#722ed1",
       color: "#722ed1",
     },
   ];
+// đèn
+const [brightness, setBrightness] = useState(0);
+
+// Khi iotData từ API/Socket thay đổi, cập nhật lại state này
+useEffect(() => {
+  if (iotData?.trangthaiDen !== undefined) {
+    setBrightness(iotData.trangthaiDen);
+  }
+}, [iotData?.trangthaiDen]);
+const handleChangeLightBrightness = async (value) => {
+  setBrightness(value);
+
+const payload = {
+    trangthaiDen: value > 0 ? 1 : 0, 
+    cuongdoDen: value 
+  };
+const res = await IoTServices.controllerIoT(iotData.IdStyemLocation, payload);
+ 
+  
+ 
+};
+// máy bơm
+// Tạo state local cho tốc độ/công suất máy bơm
+const [pumpSpeed, setPumpSpeed] = useState(0);
+
+
+useEffect(() => {
+  if (iotData?.trangthaiMaybom !== undefined) {
+    setPumpSpeed(iotData.trangthaiMaybom);
+  }
+}, [iotData?.trangthaiMaybom]);
+const handleChangePumpSpeed = async (value) => {
+  setPumpSpeed(value);
+
+const payload = {
+    IdStyemLocation: iotData.IdStyemLocation,
+    trangthaiMaybom: value > 0 ? 1 : 0,
+  };
+const res = await IoTServices.controllerIoT(iotData.IdStyemLocation, payload);
+  
+
+ 
+};
+
 
   return (
     <Container>
@@ -196,81 +244,61 @@ useEffect(() => {
             </DeviceInfo>
 
             <ControlGroup>
-              <Tag
-                color={
-                  iotData?.trangthaiDen === 1
-                    ? "green"
-                    : "red"
-                }
-              >
-                {iotData?.trangthaiDen === 1
-                  ? "ON"
-                  : "OFF"}
-              </Tag>
+  {/* Hiển thị trạng thái/độ sáng hiện tại */}
+  <Tag color={iotData?.trangthaiDen > 0 ? "green" : "red"}>
+    {iotData?.trangthaiDen > 0 ? `ON: ${iotData?.trangthaiDen}%` : "OFF"}
+  </Tag>
 
-              <ControlButton
-                className={
-                  iotData?.trangthaiDen === 1
-                    ? "on"
-                    : "off"
-                }
-                onClick={handleToggleLight}
-              >
-                {iotData?.trangthaiDen === 1
-                  ? "TURN OFF"
-                  : "TURN ON"}
-              </ControlButton>
-            </ControlGroup>
+  {/* Thanh trượt điều chỉnh giá trị từ 1 đến 100 */}
+  <div style={{ width: 150, marginLeft: 15 }}>
+    <Slider
+      min={0} // Để 0 nếu muốn kéo về tắt hẳn, hoặc 1 theo yêu cầu của bạn
+      max={100}
+      value={iotData?.trangthaiDen || 0} // Giá trị hiện tại từ API/State
+      onChange={handleChangeLightBrightness} // Hàm xử lý khi kéo trượt
+    />
+  </div>
+</ControlGroup>
           </DeviceRow>
 
           {/* PUMP */}
           <DeviceRow>
-            <DeviceInfo>
-              <DeviceIcon
-                bgColor="#e6f7ff"
-                iconColor="#1890ff"
-              >
-                <PoweroffOutlined />
-              </DeviceIcon>
+  <DeviceInfo>
+    <DeviceIcon
+      bgColor="#e6f7ff"
+      iconColor="#1890ff"
+    >
+      <PoweroffOutlined />
+    </DeviceIcon>
 
-              <div>
-                <DeviceName>
-                  {iotData?.loaimaybom}
-                </DeviceName>
+    <div>
+      <DeviceName>
+        {iotData?.loaimaybom}
+      </DeviceName>
 
-                <DeviceStatus>
-                  ID: {iotData?.IDmaybom}
-                </DeviceStatus>
-              </div>
-            </DeviceInfo>
+      <DeviceStatus>
+        ID: {iotData?.IDmaybom}
+      </DeviceStatus>
+    </div>
+  </DeviceInfo>
 
-            <ControlGroup>
-              <Tag
-                color={
-                  iotData?.trangthaiMaybom === 1
-                    ? "green"
-                    : "red"
-                }
-              >
-                {iotData?.trangthaiMaybom === 1
-                  ? "ON"
-                  : "OFF"}
-              </Tag>
+  <ControlGroup>
+    {/* Hiển thị trạng thái ON/OFF kèm phần trăm công suất bơm */}
+    <Tag color={pumpSpeed > 0 ? "green" : "red"}>
+      {pumpSpeed > 0 ? `ON: ${pumpSpeed}%` : "OFF"}
+    </Tag>
 
-              <ControlButton
-                className={
-                  iotData?.trangthaiMaybom === 1
-                    ? "on"
-                    : "off"
-                }
-                onClick={handleTogglePump}
-              >
-                {iotData?.trangthaiMaybom === 1
-                  ? "TURN OFF"
-                  : "TURN ON"}
-              </ControlButton>
-            </ControlGroup>
-          </DeviceRow>
+    {/* Thanh trượt điều khiển máy bơm giống hệt Đèn */}
+    <div style={{ width: 150, marginLeft: 15 }}>
+      <Slider
+        min={0}
+        max={100}
+        value={pumpSpeed} // Dùng state local vừa tạo
+        onChange={handleChangePumpSpeed} // Gọi hàm cập nhật liên tục khi kéo
+      />
+    </div>
+  </ControlGroup>
+</DeviceRow>
         </ControlPanel>
 
         {/* AUTO MODE */}
