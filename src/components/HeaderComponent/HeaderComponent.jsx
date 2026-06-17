@@ -31,11 +31,31 @@ export const HeaderComponent = ({isHiddenSearch, isHiddentCart}) => {
         navigate('Sign-in');
     }
     const order = useSelector((state) => state.Oder.orderItems);
-    console.log('order  o day co khong', order)
-    const user = useSelector((state) => state.user)
-    console.log('user', user);
+   
+    const user = useSelector((state) => state.user);
+    console.log('user trong header', user._id);
+    const { data: notificationData } = useQuery({
+    queryKey: ['notifications', user?._id],
+    queryFn: () =>
+        MyIoTService.getNotificationByUserId(
+            user?._id
+        ),
+    enabled: !!user?._id
+});
 
+useEffect(() => {
 
+    if(notificationData?.data){
+
+        setNotifications(
+            notificationData.data
+        );
+
+    }
+
+}, [notificationData]);
+
+console.log('notifications trong header', notifications);
 
 const latestNotifications = notifications.slice(0, 10);
 const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -141,13 +161,20 @@ const notificationContent = (
                     {item.description}
                   </div>
                   <div
-                    style={{
-                      fontSize: 12,
-                      color: '#8c8c8c',
-                    }}
-                  >
-                    {item.createdAt}
-                  </div>
+  style={{
+    fontSize: 12,
+    color: '#8c8c8c',
+  }}
+>
+  {new Date(item.createdAt).toLocaleString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })}
+</div>
                 </div>
               }
             />

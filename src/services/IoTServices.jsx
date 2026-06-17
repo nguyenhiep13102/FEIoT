@@ -15,9 +15,9 @@ import env from '../../env'
 }
  export const careplantbyid = async (id )=> {
   try {
-    console.log('id user', id);
+    
     const res = await axios.get(`http://localhost:5001/api/careplant/getDetail/${id}`);
-    console.log('res service', res.data);
+   
     return res.data;
   } catch (error) {
     return error.response?.data;
@@ -34,11 +34,19 @@ import env from '../../env'
     return error.response?.data;
   }
 }
+export const getNotificationByUserId = async (userId) => {
+  console.log('userId trong service=============', userId);
+    const res = await axios.get(
+        `http://localhost:5001/api/nocationmessage/getDetail/${userId}`
+    );
 
+    return res.data;
+};
 
 
 export default {
     getMyIoT,
     careplantbyid,
     controllerIoT,
+    getNotificationByUserId
 }
