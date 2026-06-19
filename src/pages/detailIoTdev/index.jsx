@@ -13,7 +13,8 @@ import {
   DownloadOutlined,
   CheckCircleOutlined,
   SettingOutlined,
-  FireOutlined
+  FireOutlined,
+  LineChartOutlined 
   
 } from "@ant-design/icons";
 
@@ -28,7 +29,7 @@ export default function DetailIoTdev() {
 
   const [iotData, setIotData] = useState(null);
 
-  const [autoMode, setAutoMode] = useState(false);
+  const [autoMode, setAutoMode] = useState(null);
 
   const [lastUpdate, setLastUpdate] = useState(new Date());
 
@@ -38,8 +39,16 @@ useEffect(() => {
     const res =
       await IoTServices.careplantbyid(id);
 
-    console.log("CAREPLANT:", res);
+    console.log("CAREPLANT:", res.data);
 
+if (res?.data?.length > 0) {
+      const deviceData = res.data[0];
+      console.log("=== CHẾ ĐỘ TỰ ĐỘNG ===", deviceData.chedoTuDong);
+      setAutoMode(deviceData.chedoTuDong === 1);
+    }
+  
+
+    
     if (res?.data?.length > 0) {
       setIotData(res.data[0]);
     }
@@ -141,11 +150,22 @@ const handleChangeLightBrightness = async (value) => {
 
 const payload = {
     trangthaiDen: value > 0 ? 1 : 0, 
-    cuongdoDen: value 
+    cuongdoDen: value ,
+
   };
 const res = await IoTServices.controllerIoT(iotData.IdStyemLocation, payload);
  
   
+ 
+};
+const handleToggleAutoMode = async (checked) => {
+  
+setAutoMode(checked);
+console.log('autoMode', autoMode);
+const payload = {
+    chedoTuDong: checked > 0 ? 1 : 0,
+  };
+const res = await IoTServices.careplantupdate(iotData.IdStyemLocation, payload);
  
 };
 // máy bơm
@@ -158,6 +178,7 @@ useEffect(() => {
     setPumpSpeed(iotData.trangthaiMaybom);
   }
 }, [iotData?.trangthaiMaybom]);
+
 const handleChangePumpSpeed = async (value) => {
   setPumpSpeed(value);
 
@@ -310,7 +331,8 @@ const res = await IoTServices.controllerIoT(iotData.IdStyemLocation, payload);
 
             <Switch
               checked={autoMode}
-              onChange={setAutoMode}
+              onChange={handleToggleAutoMode}
+
               size="large"
             />
           </AutoModeHeader>
@@ -340,11 +362,21 @@ const res = await IoTServices.controllerIoT(iotData.IdStyemLocation, payload);
           </ActionButton>
 
           <ActionButton
-            icon={<EyeOutlined />}
+            icon={<LineChartOutlined />}
             type="primary"
+             onClick={() => { window.location.href = "http://localhost:5173/light-chart"; }}
+          
           >
-            View Charts
+            ánh sáng
           </ActionButton>
+          <ActionButton
+            icon={<LineChartOutlined />}
+            type="primary"
+            onClick={() => { window.location.href = "http://localhost:5173/temperaturehistory"; }}
+          >
+            nhiệt dộ
+          </ActionButton>
+          
 
           <ActionButton
             icon={<DownloadOutlined />}

@@ -24,6 +24,18 @@ import env from '../../env'
   }
 }
 
+ export const careplantupdate = async (id, data )=> {
+  try {
+    
+    const res = await axios.put(`http://localhost:5001/api/careplant/update/${id}`, data);
+   
+    return res.data;
+  } catch (error) {
+    return error.response?.data;
+  }
+}
+
+
  export const controllerIoT = async (id , data)=> {
   try {
     
@@ -48,5 +60,6 @@ export default {
     getMyIoT,
     careplantbyid,
     controllerIoT,
-    getNotificationByUserId
+    getNotificationByUserId,
+    careplantupdate
 }
